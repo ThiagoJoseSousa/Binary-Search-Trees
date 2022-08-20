@@ -15,9 +15,6 @@ this.root= buildTree(array);
     }
 
 }
-//first sort and delete duplicates of the array, then build a binary search tree
-let arrayOfData= [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324]
-let sortedArray=duplicateRemove((sortArray(arrayOfData)))
 
 function buildTree (arr, start=0, end=arr.length-1) {
 if (start>end ) {return null}
@@ -62,13 +59,6 @@ while (i<array.length) { //splice alters the length, so I must not let the I get
 }
 return array;
 }
-
-let newTree= buildTree(sortedArray)
-console.log(newTree.left) // everything right, we take the mid recursively of each part, making a balanced tree.
-console.log(newTree.right)
-
-
-
 //built tree is just the root of the tree, every node is also a root
 function insertFn(builtTree,value){ if (builtTree==null){ builtTree=new nodeFactory(value) ;return builtTree}
     if (builtTree.data>value) {builtTree.left= insertFn(builtTree.left,value)} else if (builtTree.data<value){builtTree.right=insertFn(builtTree.right,value)};
@@ -86,8 +76,6 @@ function inorderRec(root)
         }
     }
 
-
-inorderRec(newTree)
 
 //searches for a value and deletes
 function deleteFn(builtTree, value){
@@ -118,7 +106,7 @@ builtTree=builtTree.left;
 return minVal;
 }
 
-console.log(find(newTree, 1000))
+
 
 function find(builtTree,value){
     //basecase
@@ -130,11 +118,13 @@ return builtTree
 }
 
 // check by level BFS, easy to implement a fn using consolelog
-function levelOrder (builtTree) {
+function levelOrder (builtTree,fn) {
  let queue = [];
  queue.push(builtTree);
+
  while (queue.length!=0) {
     let tempNode = queue.shift(); //each iteration removes and returns the 1st element
+    if (fn) {fn(tempNode,'levelOrder')}
     if (tempNode.left!=null) {
         queue.push(tempNode.left)
     }
@@ -144,27 +134,38 @@ function levelOrder (builtTree) {
  }
 }
 
-function inOrder(builtTree){if (builtTree==null){return builtTree} else {
-    inOrder(builtTree.left);
-    console.log(builtTree.data)
-    inOrder(builtTree.right)
+function inOrder(builtTree,current,fn){
+    let arr=current||[];
+    if (builtTree==null){return builtTree} else {
+    inOrder(builtTree.left,arr,fn);
+    if (fn) {fn(builtTree,'inOrder')}
+    arr.push(builtTree.data)
+    inOrder(builtTree.right,arr,fn)
+
+    return arr;
 }}
-function preOrder(builtTree,current)
+function preOrder(builtTree,current,fn)
 {let arr=current || [];
     if (builtTree==null) {return null}
+    if (fn){fn(builtTree,'preOrder')}
     arr.push(builtTree.data)
-    preOrder(builtTree.left,arr)
-    preOrder(builtTree.right,arr)
+    preOrder(builtTree.left,arr,fn)
+    preOrder(builtTree.right,arr,fn)
     
     return arr;
 //pre.push(builtTree) not needed with return
-// original  return combinations(current.concat(true)).concat(combinations(current.concat(false)));, where concat.lgt is checked on basecase
 }
 
-function postOrder(builtTree){if (builtTree==null) {return builtTree};
-postOrder(builtTree.left)
-postOrder(builtTree.right)
-console.log(builtTree.data)
+function postOrder(builtTree,current, fn){
+let arr=current || [];
+if (builtTree==null) {return builtTree};
+
+postOrder(builtTree.left, arr,fn)
+postOrder(builtTree.right, arr,fn)
+arr.push(builtTree.data)
+if (fn){fn(builtTree,'postOrder')}
+
+return arr;
 }
 
 
@@ -228,14 +229,46 @@ if (Math.abs(leftheight - rightheight) >1) {
 return (Math.max(leftheight, rightheight) +1);
 }
 
-console.log(height(newTree))
-insertFn(newTree,1000) //unbalances the tree
+
 
 function rebalance(builtTree) {
 let unbalancedTreeAsSortedArray=sortArray(preOrder(builtTree))
 builtTree=new buildTree(unbalancedTreeAsSortedArray)
 //likely ill have to do all of what i did on preOrder for every traversal order, no problem.
-
+return builtTree
 }
-console.log(preOrder(newTree)) 
-//rebalance(newTree)
+
+
+function randomNArray(arraylgt) {
+let arr=[];
+for (let i=0;i<arraylgt; i++) {
+arr.push(Math.floor(Math.random()*10))
+}
+return arr;
+}
+
+function driver () {
+let arr=randomNArray(7);
+let sortedArr= duplicateRemove(sortArray(arr))
+let builtTree= buildTree(sortedArr)
+console.log(isBalanced(builtTree)) //if returns other than false is balanced.
+function fn(order,id) {console.log(order.data + `${id}`)}
+preOrder(builtTree,undefined,fn)
+inOrder(builtTree,undefined,fn)
+postOrder(builtTree,undefined,fn)
+
+insertFn(builtTree,1000)
+insertFn(builtTree,1001)
+insertFn(builtTree,1003)
+insertFn(builtTree,1004)
+
+console.log(isBalanced(builtTree))
+builtTree = rebalance(builtTree)
+console.log(isBalanced(builtTree))
+
+levelOrder(builtTree,fn)
+preOrder(builtTree,undefined,fn)
+inOrder(builtTree,undefined,fn)
+postOrder(builtTree,undefined,fn)
+}
+driver()
